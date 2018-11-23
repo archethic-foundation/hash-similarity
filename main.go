@@ -10,10 +10,12 @@ import (
 	"flag"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
 	"github.com/AllenDang/simhash"
+
 	"github.com/dexyk/stringosim"
 )
 
@@ -37,43 +39,48 @@ func main() {
 
 	dataHash := "843a54527fdcedfabc0e8f0234e76f63c1d149d26790531998c43d73e455e0da"
 
-	var r float64
+	var s float64
 
 	cycles := 0
 	var key string
-	for r < *t {
+	for s < *t {
 		key = randomKeyHash()
 		if *lev {
-			dist := stringosim.Levenshtein([]rune(dataHash), []rune(key))
-			r = 1 - float64(dist)/64
-			log.Print(r)
+			dist := stringosim.Levenshtein([]rune(dataHash), []rune(key), stringosim.LevenshteinSimilarityOptions{
+				SubstituteCost:  2,
+				DeleteCost:      1,
+				InsertCost:      1,
+				CaseInsensitive: false,
+			})
+			s = math.Abs(1 - float64(dist)/64)
+			log.Print(s)
 		}
 
 		if *sim {
-			r = simhash.GetLikenessValue(dataHash, key)
-			log.Print(r)
+			s = simhash.GetLikenessValue(dataHash, key)
+			log.Print(s)
 		}
 
 		if *ham {
 			dist, _ := stringosim.Hamming([]rune(dataHash), []rune(key))
-			r = 1 - float64(dist)/64
-			log.Print(r)
+			s = math.Abs(1 - float64(dist)/64)
+			log.Print(s)
 		}
 
 		if *jaro {
-			r = stringosim.JaroWinkler([]rune(dataHash), []rune(key))
-			log.Print(r)
+			s = stringosim.JaroWinkler([]rune(dataHash), []rune(key))
+			log.Print(s)
 		}
 
 		if *cos {
-			r = stringosim.Cosine([]rune(dataHash), []rune(key))
-			log.Print(r)
+			s = stringosim.Cosine([]rune(dataHash), []rune(key))
+			log.Print(s)
 		}
 
 		if *lcs {
 			dist := stringosim.LCS([]rune(dataHash), []rune(key))
-			r = 1 - (float64(dist) / 64)
-			log.Print(r)
+			s = 1 - (float64(dist) / 64)
+			log.Print(s)
 		}
 
 		cycles++
